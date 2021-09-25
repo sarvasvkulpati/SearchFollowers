@@ -1,6 +1,11 @@
 <script>
 	import User from './User.svelte';
+  import Search from './Search.svelte';
 
+  let comparisonType;
+  let numFollowers;
+  let keywords;
+  let place;
 
   let getUser = async () => {
     let res = await fetch('/userData')
@@ -16,11 +21,15 @@
 
 
   let userPromise = getUser()
-  let followerPromise = getFollowers()
+  // let followerPromise = getFollowers()
+
+
+  $ : comparisonType, numFollowers, keywords, place, console.log(comparisonType, numFollowers, keywords, place);
 
 </script>
 
 <main>
+
   {#await userPromise}
     <p> loading</p>
   {:then data}
@@ -29,8 +38,16 @@
   {/await}
 
 
-  {#await followerPromise}
-    <p> loading</p>
+  <Search 
+    bind:comparisonType={comparisonType}
+    bind:numFollowers={numFollowers}
+    bind:keywords={keywords}
+    bind:place={place}
+    />
+
+
+  <!-- {#await followerPromise}
+    <p> loading...</p>
   {:then data}
     
     {#each data.followers.items as follower}
@@ -38,7 +55,7 @@
       <User data = {follower}/>
     {/each}
     
-  {/await}
+  {/await} -->
 	
 
   <a href="/twitter">Login</a>

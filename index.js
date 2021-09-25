@@ -212,18 +212,52 @@ app.get('/userFollowers', async (req, res) => {
 
     if(auth.userToken && auth.userTokenSecret){
 
-      
+      const {comparisonType, followerNumber, keywords, place} = req.query;
+
+
       
       let followers = await followerBase.fetch({'following' : auth.userId.toString()})
 
-      console.log(followers)
-      res.json({followers: followers})
+
+      let filteredFollowers = followers;
+
+      if (keywords.length != 0) {
+        let keywords = keywords.split(',')
+        filteredFollowers = filteredFollowers
+                              .filter((follower) => 
+                                keywords.some(keyword => 
+                                  follower.includes(keyword)))
+      }
+
+      if(place.length != 0) {
+        filteredFollowers = filteredFollowers
+                              .filter((follower) => 
+                                follower.location.includes(place))
+      }
+
+      if (comparisonType == 'greater') {
+
+        filteredFollowers = filteredFollowers.filter((follower) => follower.followers > followerNumber)
+
+      } else if (comparisonType == 'lesser') {
+        filteredFollowers = filteredFollowers.filter((follower) => follower.followers < followerNumber)
+
+      } else if (comparisonType == 'equal') {
+
+        filteredFollowers = filteredFollowers.filter((follower) => follower.followers == followerNumber)
+
+      }
+
+      
+      res.json({followers: filteredFollowers})
   
 
     }
   }
   
 })
+
+
 
 
 

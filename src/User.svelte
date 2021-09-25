@@ -8,7 +8,7 @@
 <div> 
 
 
-<img src={data.profile_image_url_https}/>
+<img alt="profile" src={data.profile_image_url_https}/>
 
   <h1>{data.name}</h1>
   <h3>@{data.screen_name}</h3>
