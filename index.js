@@ -174,6 +174,26 @@ const chunk = (arr, size) =>
   );
 
 
+ let shuffle = (array) => {
+  let currentIndex = array.length,  randomIndex;
+
+  // While there remain elements to shuffle...
+  while (currentIndex != 0) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    // And swap it with the current element.
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]];
+  }
+
+  return array;
+}
+
+
+
 
 let getInterestingFollowerFromId = async (id) => {
       let followers = await followerBase.fetch({'following' : id.toString()})
@@ -196,11 +216,12 @@ app.get('/userData', async (req, res) => {
 
       let user = await db.get(auth.userId)
       
-      
       res.json({user: user})
   
 
     }
+  } else {
+    res.json({user:null})
   }
   
 })
@@ -211,51 +232,68 @@ app.get('/userFollowers', async (req, res) => {
     const auth = JSON.parse(req.cookies.auth)
 
     if(auth.userToken && auth.userTokenSecret){
-
-      const {comparisonType, followerNumber, keywords, place} = req.query;
+      console.log('followers from the server')
+      let {comparisonType, followerNumber, keywords, place} = req.query;
 
 
       
       let followers = await followerBase.fetch({'following' : auth.userId.toString()})
 
+      
 
-      let filteredFollowers = followers;
 
-      if (keywords.length != 0) {
-        let keywords = keywords.split(',')
+      let filteredFollowers = followers.items;
+
+      if (keywords != 'undefined' &&  keywords.length != 0) {
+
+        console.log('keywords')
+        keywords = keywords.split(',')
         filteredFollowers = filteredFollowers
                               .filter((follower) => 
+                                
                                 keywords.some(keyword => 
-                                  follower.includes(keyword)))
+                                  follower.description.includes(keyword))
+                              
+                                )
       }
 
-      if(place.length != 0) {
+      if(place != 'undefined' && place.length != 0) {
+        console.log('place')
         filteredFollowers = filteredFollowers
                               .filter((follower) => 
                                 follower.location.includes(place))
       }
 
-      if (comparisonType == 'greater') {
+      if (comparisonType == 'greater' && followerNumber != 'undefined') {
+         console.log('finding followers with more than ', followerNumber)
 
-        filteredFollowers = filteredFollowers.filter((follower) => follower.followers > followerNumber)
+        filteredFollowers = filteredFollowers.filter((follower) =>   
+          follower.followers_count > followerNumber)
 
-      } else if (comparisonType == 'lesser') {
-        filteredFollowers = filteredFollowers.filter((follower) => follower.followers < followerNumber)
+        console.log(filteredFollowers)
 
-      } else if (comparisonType == 'equal') {
+      } else if (comparisonType == 'lesser' && followerNumber != 'undefined') {
+         console.log('lesser')
+        filteredFollowers = filteredFollowers.filter((follower) => follower.followers_count < followerNumber)
 
-        filteredFollowers = filteredFollowers.filter((follower) => follower.followers == followerNumber)
+      } else if (comparisonType == 'equal' && followerNumber != 'undefined') {
+          console.log('equal')
+        filteredFollowers = filteredFollowers.filter((follower) => follower.followers_count == followerNumber)
 
       }
 
+
       
-      res.json({followers: filteredFollowers})
+
+      
+      res.json({followers: shuffle(filteredFollowers)})
   
 
     }
   }
   
 })
+
 
 
 
@@ -269,7 +307,7 @@ app.get('/', (req, res) => {
 });
 
 
-app.listen(3000, () => {
+app.listen(3000, "0.0.0.0", () => {
   console.log('server started');
 });
 
